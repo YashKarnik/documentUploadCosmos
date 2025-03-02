@@ -7,7 +7,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [tagSearchInput, setTagSearchInput] = useState('');
   const [tagSearchInputResult, setTagSearchInputResult] = useState('');
-  const REACT_APP_APP_BASE_URL = 'http://localhost:8080';
+  const REACT_APP_APP_BASE_URL = 'https://document-upload-rest-d6efhcfhdvfng9cd.canadacentral-01.azurewebsites.net';
 
   function addTag() {
     setTags(tagInput);
