@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "staticSites_document_upload_ui_name": {
+            "value": null
+        },
+        "sites_documentUploadFunction1234_name": {
+            "value": null
+        },
+        "serverfarms_ASP_documentUploadgroup_bf41_name": {
+            "value": null
+        },
+        "storageAccounts_documentuploadgroup80bb_name": {
+            "value": null
+        },
+        "databaseAccounts_document_upload_cosmos_name": {
+            "value": null
+        }
+    }
+}

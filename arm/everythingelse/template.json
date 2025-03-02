@@ -1,0 +1,1157 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "staticSites_document_upload_ui_name": {
+            "defaultValue": "document-upload-ui",
+            "type": "String"
+        },
+        "sites_documentUploadFunction1234_name": {
+            "defaultValue": "documentUploadFunction1234",
+            "type": "String"
+        },
+        "serverfarms_ASP_documentUploadgroup_bf41_name": {
+            "defaultValue": "ASP-documentUploadgroup-bf41",
+            "type": "String"
+        },
+        "storageAccounts_documentuploadgroup80bb_name": {
+            "defaultValue": "documentuploadgroup80bb",
+            "type": "String"
+        },
+        "databaseAccounts_document_upload_cosmos_name": {
+            "defaultValue": "document-upload-cosmos",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[parameters('databaseAccounts_document_upload_cosmos_name')]",
+            "location": "East US",
+            "tags": {
+                "defaultExperience": "Core (SQL)",
+                "hidden-cosmos-mmspecial": ""
+            },
+            "kind": "GlobalDocumentDB",
+            "identity": {
+                "type": "None"
+            },
+            "properties": {
+                "publicNetworkAccess": "Enabled",
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "disableKeyBasedMetadataWriteAccess": false,
+                "enableFreeTier": false,
+                "enableAnalyticalStorage": false,
+                "analyticalStorageConfiguration": {
+                    "schemaType": "WellDefined"
+                },
+                "databaseAccountOfferType": "Standard",
+                "enableMaterializedViews": false,
+                "capacityMode": "Serverless",
+                "defaultIdentity": "FirstPartyIdentity",
+                "networkAclBypass": "None",
+                "disableLocalAuth": false,
+                "enablePartitionMerge": false,
+                "enablePerRegionPerPartitionAutoscale": false,
+                "enableBurstCapacity": false,
+                "enablePriorityBasedExecution": false,
+                "defaultPriorityLevel": "High",
+                "minimalTlsVersion": "Tls12",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "locations": [
+                    {
+                        "locationName": "East US",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "cors": [
+                    {
+                        "allowedOrigins": "*"
+                    }
+                ],
+                "capabilities": [],
+                "ipRules": [],
+                "backupPolicy": {
+                    "type": "Periodic",
+                    "periodicModeProperties": {
+                        "backupIntervalInMinutes": 1440,
+                        "backupRetentionIntervalInHours": 48,
+                        "backupStorageRedundancy": "Local"
+                    }
+                },
+                "networkAclBypassResourceIds": [],
+                "diagnosticLogSettings": {
+                    "enableFullTextQuery": "None"
+                },
+                "capacity": {
+                    "totalThroughputLimit": 4000
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2023-05-01",
+            "name": "[parameters('storageAccounts_documentuploadgroup80bb_name')]",
+            "location": "canadacentral",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "defaultToOAuthAuthentication": true,
+                "publicNetworkAccess": "Enabled",
+                "allowCrossTenantReplication": false,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2024-04-01",
+            "name": "[parameters('serverfarms_ASP_documentUploadgroup_bf41_name')]",
+            "location": "Canada Central",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y",
+                "capacity": 0
+            },
+            "kind": "functionapp",
+            "properties": {
+                "perSiteScaling": false,
+                "elasticScaleEnabled": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0,
+                "zoneRedundant": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/staticSites",
+            "apiVersion": "2024-04-01",
+            "name": "[parameters('staticSites_document_upload_ui_name')]",
+            "location": "East US 2",
+            "sku": {
+                "name": "Free",
+                "tier": "Free"
+            },
+            "properties": {
+                "repositoryUrl": "https://github.com/YashKarnik/documentUploadCosmos",
+                "branch": "main",
+                "stagingEnvironmentPolicy": "Enabled",
+                "allowConfigFileUpdates": true,
+                "provider": "GitHub",
+                "enterpriseGradeCdnStatus": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/documentUpload')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "documentUpload"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/ToDoList')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "ToDoList"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/00000000-0000-0000-0000-000000000001')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/00000000-0000-0000-0000-000000000002')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/tableRoleDefinitions",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/00000000-0000-0000-0000-000000000001')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Reader",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/executeQuery",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/readChangeFeed",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/entities/read"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/tableRoleDefinitions",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/00000000-0000-0000-0000-000000000002')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "roleName": "Cosmos DB Built-in Data Contributor",
+                "type": "BuiltInRole",
+                "assignableScopes": [
+                    "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+                ],
+                "permissions": [
+                    {
+                        "dataActions": [
+                            "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/*",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/*",
+                            "Microsoft.DocumentDB/databaseAccounts/tables/containers/entities/*"
+                        ],
+                        "notDataActions": []
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "allowPermanentDelete": false,
+                    "enabled": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "protocolSettings": {
+                    "smb": {}
+                },
+                "cors": {
+                    "corsRules": []
+                },
+                "shareDeleteRetentionPolicy": {
+                    "enabled": true,
+                    "days": 7
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2024-04-01",
+            "name": "[parameters('sites_documentUploadFunction1234_name')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_documentUploadgroup_bf41_name'))]"
+            ],
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "documentuploadfunction1234.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "documentuploadfunction1234.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_documentUploadgroup_bf41_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "dnsConfiguration": {},
+                "vnetRouteAllEnabled": false,
+                "vnetImagePullEnabled": false,
+                "vnetContentShareEnabled": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 200,
+                    "minimumElasticInstanceCount": 1
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "ipMode": "IPv4",
+                "vnetBackupRestoreEnabled": false,
+                "customDomainVerificationId": "1CE4FBD4327C21109B79C8B3ED7339DAE9802DB4481279DA28424F474599C9E0",
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "endToEndEncryptionEnabled": false,
+                "redundancyMode": "None",
+                "publicNetworkAccess": "Enabled",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/ftp')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "allow": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/scm')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/web')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v6.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2022",
+                "httpLoggingEnabled": false,
+                "acrUseManagedIdentityCreds": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$documentUploadFunction1234",
+                "scmType": "GitHubAction",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "javaVersion": "17",
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetRouteAllEnabled": false,
+                "vnetPrivatePortsCount": 0,
+                "publicNetworkAccess": "Enabled",
+                "cors": {
+                    "allowedOrigins": [
+                        "https://portal.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "scmMinTlsVersion": "1.2",
+                "ftpsState": "FtpsOnly",
+                "preWarmedInstanceCount": 0,
+                "functionAppScaleLimit": 200,
+                "functionsRuntimeScaleMonitoringEnabled": false,
+                "minimumElasticInstanceCount": 1,
+                "azureStorageAccounts": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/0f7695edcd3d4f51acc65ddbbed510a7')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"d403ae751e99d1210395484f58e77a591c93c1f5\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T11:56:44.4504517Z",
+                "end_time": "2025-03-02T11:56:45.6848085Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/2c8bf6ab2a164201b8fd3dea18217255')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"b769b445149ea24717a9d0c76943941fd05bdf53\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T20:55:21.2163449Z",
+                "end_time": "2025-03-02T20:55:22.4525272Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/36d60214983b468e9803051f7e7dd362')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"c0de7ddac7694376879f0cf09184d53bf4d33c55\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T20:11:08.7548283Z",
+                "end_time": "2025-03-02T20:11:09.9899087Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/39191c9da3ca4e3a9758bb6b345db7e5')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"13fad72140ab42b393483bab3e804df8be8e2d39\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T19:25:24.8791892Z",
+                "end_time": "2025-03-02T19:25:26.7253953Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/39542520dc0b41a59698cfc80097dbdc')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"17a298743b52f8013da866d7fb87aed6c7150055\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T19:51:07.862746Z",
+                "end_time": "2025-03-02T19:51:09.0970108Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/5753914a9ba740f2a26479b75c06542b')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"13e49b3187cbd0564a74f8a042da71e8ad7ae053\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T19:29:07.9059146Z",
+                "end_time": "2025-03-02T19:29:09.4841132Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/8893381b15c5497c9c9cf756a4def1da')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"30431427943ae5a25026653eae072d46da30e9ba\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T19:37:33.3029958Z",
+                "end_time": "2025-03-02T19:37:34.6049048Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/b6cec27c4f9049dbb709c08361a02bf6')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"890b79a06dda4667579df833b407b3f3646cae40\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T20:02:09.0613735Z",
+                "end_time": "2025-03-02T20:02:10.982789Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/db8489a2fbfe476cbb048e4bff190aea')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"ba387053098f48fc784bd26ca250e3689ea63015\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T19:16:56.8768299Z",
+                "end_time": "2025-03-02T19:16:58.2059339Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/f768fe07f43a4225bba9b6a43d9b4007')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "GITHUB_ZIP_DEPLOY_FUNCTIONS_V1",
+                "message": "{\"type\":\"deployment\",\"sha\":\"f9aaf747fefbff5723a162d4d7ba4916c7598e3b\",\"repoName\":\"YashKarnik/documentUploadCosmos\",\"actor\":\"YashKarnik\",\"slotName\":\"production\"}",
+                "start_time": "2025-03-02T20:15:59.1995699Z",
+                "end_time": "2025-03-02T20:16:00.5460528Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/insertIntoCosmos')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/insertIntoCosmos/",
+                "script_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/azure-function-examples-1.0.0-SNAPSHOT.jar",
+                "config_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/insertIntoCosmos/function.json",
+                "test_data_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/data/Functions/sampledata/insertIntoCosmos.dat",
+                "href": "https://documentuploadfunction1234.azurewebsites.net/admin/functions/insertIntoCosmos",
+                "config": {
+                    "scriptFile": "../azure-function-examples-1.0.0-SNAPSHOT.jar",
+                    "entryPoint": "org.example.functions.DurableFunction.insertIntoCosmos",
+                    "bindings": [
+                        {
+                            "type": "activityTrigger",
+                            "direction": "in",
+                            "name": "blobObjectVo"
+                        },
+                        {
+                            "type": "cosmosDB",
+                            "direction": "out",
+                            "name": "$return",
+                            "databaseName": "documentUpload",
+                            "containerName": "departments",
+                            "connection": "AzureCosmosDBConnection"
+                        }
+                    ]
+                },
+                "language": "java",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/orchestrator')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/orchestrator/",
+                "script_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/azure-function-examples-1.0.0-SNAPSHOT.jar",
+                "config_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/orchestrator/function.json",
+                "test_data_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/data/Functions/sampledata/orchestrator.dat",
+                "href": "https://documentuploadfunction1234.azurewebsites.net/admin/functions/orchestrator",
+                "config": {
+                    "scriptFile": "../azure-function-examples-1.0.0-SNAPSHOT.jar",
+                    "entryPoint": "org.example.functions.DurableFunction.orchestrator",
+                    "bindings": [
+                        {
+                            "type": "orchestrationTrigger",
+                            "direction": "in",
+                            "name": "ctx"
+                        }
+                    ]
+                },
+                "language": "java",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/StartOrchestration')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/StartOrchestration/",
+                "script_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/azure-function-examples-1.0.0-SNAPSHOT.jar",
+                "config_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/site/wwwroot/StartOrchestration/function.json",
+                "test_data_href": "https://documentuploadfunction1234.azurewebsites.net/admin/vfs/data/Functions/sampledata/StartOrchestration.dat",
+                "href": "https://documentuploadfunction1234.azurewebsites.net/admin/functions/StartOrchestration",
+                "config": {
+                    "scriptFile": "../azure-function-examples-1.0.0-SNAPSHOT.jar",
+                    "entryPoint": "org.example.functions.DurableFunction.startOrchestration",
+                    "bindings": [
+                        {
+                            "type": "blobTrigger",
+                            "direction": "in",
+                            "name": "content",
+                            "path": "departments/{name}",
+                            "dataType": "binary",
+                            "connection": "AzureWebJobsStorage"
+                        },
+                        {
+                            "type": "durableClient",
+                            "direction": "in",
+                            "name": "durableContext"
+                        }
+                    ]
+                },
+                "language": "java",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('sites_documentUploadFunction1234_name'), '/', parameters('sites_documentUploadFunction1234_name'), '.azurewebsites.net')]",
+            "location": "Canada Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_documentUploadFunction1234_name'))]"
+            ],
+            "properties": {
+                "siteName": "documentUploadFunction1234",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/staticSites/basicAuth",
+            "apiVersion": "2024-04-01",
+            "name": "[concat(parameters('staticSites_document_upload_ui_name'), '/default')]",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/staticSites', parameters('staticSites_document_upload_ui_name'))]"
+            ],
+            "properties": {
+                "applicableEnvironmentsMode": "SpecifiedEnvironments"
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/documentUpload/departments')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('databaseAccounts_document_upload_cosmos_name'), 'documentUpload')]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "departments",
+                    "indexingPolicy": {
+                        "indexingMode": "consistent",
+                        "automatic": true,
+                        "includedPaths": [
+                            {
+                                "path": "/*"
+                            }
+                        ],
+                        "excludedPaths": [
+                            {
+                                "path": "/\"_etag\"/?"
+                            }
+                        ]
+                    },
+                    "partitionKey": {
+                        "paths": [
+                            "/tag"
+                        ],
+                        "kind": "Hash",
+                        "version": 2
+                    },
+                    "uniqueKeyPolicy": {
+                        "uniqueKeys": []
+                    },
+                    "conflictResolutionPolicy": {
+                        "mode": "LastWriterWins",
+                        "conflictResolutionPath": "/_ts"
+                    },
+                    "computedProperties": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+            "apiVersion": "2024-12-01-preview",
+            "name": "[concat(parameters('databaseAccounts_document_upload_cosmos_name'), '/ToDoList/Items')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('databaseAccounts_document_upload_cosmos_name'), 'ToDoList')]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccounts_document_upload_cosmos_name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "Items",
+                    "indexingPolicy": {
+                        "indexingMode": "consistent",
+                        "automatic": true,
+                        "includedPaths": [
+                            {
+                                "path": "/*"
+                            }
+                        ],
+                        "excludedPaths": [
+                            {
+                                "path": "/\"_etag\"/?"
+                            }
+                        ]
+                    },
+                    "partitionKey": {
+                        "paths": [
+                            "/partitionKey"
+                        ],
+                        "kind": "Hash"
+                    },
+                    "uniqueKeyPolicy": {
+                        "uniqueKeys": []
+                    },
+                    "conflictResolutionPolicy": {
+                        "mode": "LastWriterWins",
+                        "conflictResolutionPath": "/_ts"
+                    },
+                    "computedProperties": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/azure-webjobs-hosts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/azure-webjobs-secrets')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/departments')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-applease')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-leases')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234a081')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "accessTier": "TransactionOptimized",
+                "shareQuota": 102400,
+                "enabledProtocols": "SMB"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/azure-webjobs-blobtrigger-documentuploadfunction1234')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-control-00')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-control-01')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-control-02')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-control-03')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentuploadfunction1234-workitems')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {
+                "metadata": {}
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/AzureFunctionsDiagnosticEvents202503')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentUploadFunction1234History')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(parameters('storageAccounts_documentuploadgroup80bb_name'), '/default/documentUploadFunction1234Instances')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccounts_documentuploadgroup80bb_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_documentuploadgroup80bb_name'))]"
+            ],
+            "properties": {}
+        }
+    ]
+}
