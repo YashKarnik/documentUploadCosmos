@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: documentupload
+
+blob:
+  endpoint: https://documentuploadgroup80bb.blob.core.windows.net/
+  container: departments
+
+cosmos:
+  endpoint: https://document-upload-cosmos.documents.azure.com:443/
+  database: documentUpload
+  container: departments
+
