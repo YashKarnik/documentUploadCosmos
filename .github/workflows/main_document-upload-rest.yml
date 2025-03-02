@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  PACKAGE_DIRECTORY: 'rest' # set this to the directory which contains pom.xml file
+  PACKAGE_DIRECTORY: 'rest'
+  COSMOS_PRIMARY_KEY: ${{ secrets.COSMOS_PRIMARY_KEY }}
 
 jobs:
   build:
