@@ -9,6 +9,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  PACKAGE_DIRECTORY: 'rest' # set this to the directory which contains pom.xml file
+
 jobs:
   build:
     runs-on: windows-latest
@@ -25,13 +28,16 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install
+        run: |
+          pushd './${{ env.PACKAGE_DIRECTORY }}'
+          mvn clean package
+          popd
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/${{ env.PACKAGE_DIRECTORY }}/target/*.jar'
 
   deploy:
     runs-on: windows-latest
