@@ -77,3 +77,5 @@ node_modules
 __blobstorage__
 __queuestorage__
 target
+
+data/*
